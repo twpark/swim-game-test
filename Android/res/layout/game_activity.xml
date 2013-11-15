@@ -1,0 +1,101 @@
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".GameActivity">
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <Button
+                android:id="@+id/idButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:text="Button"/>
+
+        <Spinner
+                android:id="@+id/idSpinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@+id/idButton"
+                android:layout_toRightOf="@+id/idLabel"/>
+
+        <TextView
+                android:id="@+id/idLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/idButton"
+                android:layout_alignBottom="@+id/idButton"
+                android:layout_alignParentLeft="true"
+                android:text="TextView"/>
+    </RelativeLayout>
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" android:layout_below="@+id/linearLayout1">
+        <TextView
+                android:id="@+id/textViewPacket"
+                android:layout_width="wrap_content"
+                android:layout_height="135dp"
+                android:layout_alignLeft="@+id/linearLayout1"
+                android:layout_alignRight="@+id/linearLayout1"
+                android:layout_below="@+id/linearLayout1"/>
+        <TextView
+                android:id="@+id/textViewError"
+                android:layout_width="wrap_content"
+                android:layout_height="113dp"
+                android:layout_above="@+id/startButton"
+                android:layout_alignLeft="@+id/startButton"
+                android:layout_alignRight="@+id/textViewPacket" android:layout_alignParentTop="true"
+                />
+    </LinearLayout>
+    <LinearLayout
+            android:id="@+id/linearLayout1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_alignParentBottom="true">
+        <Button
+                android:id="@+id/startButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/testStartButton"
+                android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1"
+                android:text="Start"/>
+
+        <Button android:id="@+id/netTestButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/testStartButton" android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1" android:text="Net test"/>
+        <Button android:id="@+id/strokeTestButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/testStartButton" android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1" android:text="Stroke test"/>
+        <Button
+                android:id="@+id/testStartButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignRight="@+id/linearLayout1"
+                android:layout_marginRight="14dp"
+                android:text="Test"/>
+
+        <Button
+                android:id="@+id/test2StartButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/startButton"
+                android:layout_toLeftOf="@+id/testStartButton"
+                android:text="Test2"/>
+
+    </LinearLayout>
+
+</LinearLayout>
