@@ -177,7 +177,7 @@ public class Server {
 							packet.getData(), 0, packet.getLength());
 					DataInputStream dataIn = new DataInputStream(byteIn);
 
-					int clientID = dataIn.readByte();
+					int clientID = dataIn.readInt();
 					int seq = dataIn.readInt();
                     int payloadSize = dataIn.readInt();
                     byte pBuffer[] = new byte[payloadSize];
@@ -238,7 +238,7 @@ public class Server {
                             continue;
                         }
 
-                        dataOut.write(clientId);
+                        dataOut.writeInt(clientId);
                         dataOut.writeInt(myPacket.getSeq());
                         Logger.d("Sending " + myPacket.getSeq());
 

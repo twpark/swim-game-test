@@ -1,9 +1,6 @@
 package edu.nclab.swimudpserver;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
 /**
  * User: Changhoon
@@ -18,10 +15,10 @@ public class GameMessage {
     public static GameMessage readFromBytes(byte[] bytes) {
         GameMessage msg = new GameMessage();
         try {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-            msg.timestamp = ois.readLong();
-            msg.signal = ois.readInt();
-            msg.status = ois.readInt();
+            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
+            msg.timestamp = dis.readLong();
+            msg.signal = dis.readInt();
+            msg.status = dis.readInt();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -31,10 +28,10 @@ public class GameMessage {
     public byte[] toByteArray() {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeLong(timestamp);
-            oos.writeInt(signal);
-            oos.writeInt(status);
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeLong(timestamp);
+            dos.writeInt(signal);
+            dos.writeInt(status);
             return baos.toByteArray();
         } catch (Exception e) {
             e.printStackTrace();

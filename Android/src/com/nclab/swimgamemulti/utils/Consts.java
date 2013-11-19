@@ -16,7 +16,7 @@ public class Consts {
     public final static int RECV_TIMEOUT = 0;
 
 //    public final static String SERVER_HOSTNAME = "pomato.kaist.ac.kr";
-    public final static String SERVER_HOSTNAME = "143.248.136.26";
+    public final static String SERVER_HOSTNAME = "192.168.0.8";
     public final static int SERVER_PORT = 31342;
     public final static int SRC_PORT = 31343;
     public final static int CLIENT_PORT = 31344;

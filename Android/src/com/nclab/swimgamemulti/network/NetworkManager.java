@@ -51,7 +51,7 @@ public class NetworkManager {
                     ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
                     DataInputStream dataIn = new DataInputStream(byteIn);
 
-                    byte serverId = dataIn.readByte();
+                    int serverId = dataIn.readInt();
                     int seq = dataIn.readInt();
                     int payloadSize = dataIn.readInt();
                     byte pBuffer[] = new byte[payloadSize];
@@ -82,7 +82,7 @@ public class NetworkManager {
         @Override
         public void run() {
             Logger.d("Sender running...");
-            byte clientId = 1;
+            int clientId = 1;
             try {
                 DatagramSocket socket = openSocket(Consts.SRC_PORT);
                 InetAddress addr = InetAddress.getByName(Consts.SERVER_HOSTNAME);
@@ -99,7 +99,7 @@ public class NetworkManager {
                             continue;
                         }
 
-                        dataOut.write(clientId);
+                        dataOut.writeInt(clientId);
                         dataOut.writeInt(udpPacket.getSeq());
                         dataOut.writeInt(udpPacket.getPayload().length);
                         Logger.d("Payload size: " + udpPacket.getPayload().length);
