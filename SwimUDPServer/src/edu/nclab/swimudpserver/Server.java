@@ -9,9 +9,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
@@ -22,18 +20,29 @@ public class Server {
     public static final int SERVER_STATUS_ALL_READY = 3;
     public static final int SERVER_STATUS_STARTED = 4;
 
+    private static final int SIGNAL_READY = 100;
+    private static final int SIGNAL_DESIGNATE_ID = 101;
+    private static final int SIGNAL_START_REQUEST = 102;
+    private static final int SIGNAL_START_ACK = 103;
+
     boolean isServerRunning = true;
 	boolean isReceiving = true;
 	boolean isSending = true;
 	CountDownLatch latch;
-	
-	HashSet<Long> packetSet;
+
+    Map<Integer, Player> playerMap;
+    ConcurrentLinkedQueue<GamePacket> receivedPacketQueue;
+
+	TreeSet<Long> packetSet;
 	LinkedList<PacketID> packetTimeList;
+
+    int readyCount = 0;
 	
     private int lastSeq = 1;
+    private int lastGeneratedId = 0;
     private ConcurrentLinkedQueue<MyPacket> packetQueue = new ConcurrentLinkedQueue<MyPacket>();
 
-    private int serverStatus = Consts.SERVER_STATUS_WAIT;
+    private int serverStatus = SERVER_STATUS_WAIT;
 
 	public static void main(String[] args) {
 		Server server = new Server();
@@ -56,6 +65,7 @@ public class Server {
 
 		try {
             server.run();
+//            server.addMyPacket("143.248.92.63");
 			/* for debugging 
 			Thread.sleep(1000);
 			server.addMyPacket("143.248.92.63");
@@ -84,7 +94,10 @@ public class Server {
 
 	public Server() {
 		latch = new CountDownLatch(2);
-		packetSet = new HashSet<Long>();
+
+        playerMap = new HashMap<Integer, Player>();
+        receivedPacketQueue = new ConcurrentLinkedQueue<GamePacket>();
+		packetSet = new TreeSet<Long>();
 		packetTimeList = new LinkedList<PacketID>();
 	}
 
@@ -106,7 +119,101 @@ public class Server {
     }
 
     private void update() {
+        while (receivedPacketQueue.isEmpty()) {}
 
+        GamePacket gamePacket = receivedPacketQueue.poll();
+
+        switch (gamePacket.getGameMsg().signal) {
+            case SIGNAL_READY:
+                if (serverStatus == SERVER_STATUS_WAIT) {
+                    serverStatus = SERVER_STATUS_READYING;
+                    readyCount = 1;
+                    Player newPlayer = new Player(generateId(), gamePacket.getHostname());
+                    newPlayer.setStatus(Consts.GAME_STATUS_READY);
+                    int newId = newPlayer.getId();
+                    playerMap.put(newId, newPlayer);
+                    Logger.d("Player " + newPlayer.getId() + " got ready");
+
+                    GameMessage gameMsg = new GameMessage();
+                    gameMsg.id = newId;
+                    gameMsg.signal = SIGNAL_DESIGNATE_ID;
+                    gameMsg.status = serverStatus;
+                    sendGameMessage(newId, gameMsg);
+                    // Return id packet
+                } else if (serverStatus == SERVER_STATUS_READYING) {
+                    if (!playerMap.containsKey(gamePacket.getId())) {
+                        Player newPlayer = new Player(generateId(), gamePacket.getHostname());
+                        newPlayer.setStatus(Consts.GAME_STATUS_READY);
+                        playerMap.put(newPlayer.getId(), newPlayer);
+                        int newId = newPlayer.getId();
+                        playerMap.put(newId, newPlayer);
+
+                        GameMessage gameMsg = new GameMessage();
+                        gameMsg.id = newId;
+                        gameMsg.signal = SIGNAL_DESIGNATE_ID;
+                        gameMsg.status = serverStatus;
+                        sendGameMessage(newId, gameMsg);
+
+                        readyCount = readyCount + 1;
+                        // Return id packet
+                    } else {
+                        Logger.d("Player " + gamePacket.getId() + " already registered");
+                    }
+                }
+
+                if (readyCount == 2) {
+                    serverStatus = SERVER_STATUS_ALL_READY;
+
+                }
+                break;
+            case SIGNAL_START_REQUEST:
+                if (serverStatus == SERVER_STATUS_ALL_READY) {
+                    for (Player player : playerMap.values()) {
+                        GameMessage gameMsg = new GameMessage();
+                        gameMsg.signal = SIGNAL_START_ACK;
+                        sendGameMessage(player.getId(), gameMsg);
+                    }
+                    serverStatus = SERVER_STATUS_STARTED;
+                    Logger.d("Game started with " + playerMap.size() + " players");
+                }
+                break;
+        };
+    }
+
+    private class GamePacket {
+        public int id;
+        public String hostname;
+        public int seq;
+        public byte[] payload;
+        public GameMessage gameMsg;
+
+        private GamePacket(int id, String hostname, int seq, byte[] payload) {
+            this.id = id;
+            this.hostname = hostname;
+            this.seq = seq;
+            this.payload = payload;
+            this.gameMsg = GameMessage.readFromBytes(payload);
+        }
+
+        private int getId() {
+            return id;
+        }
+
+        private String getHostname() {
+            return hostname;
+        }
+
+        private int getSeq() {
+            return seq;
+        }
+
+        private byte[] getPayload() {
+            return payload;
+        }
+
+        private GameMessage getGameMsg() {
+            return gameMsg;
+        }
     }
 
 	private class PacketID {
@@ -123,7 +230,7 @@ public class Server {
 			sequence = seq;
 			issuedTime = time;
 		}
-	}
+    }
 
     // make a long packet ID to use as a key of packetIDSet
 	private long makeLongPacketID(int id, int seq) {
@@ -179,10 +286,10 @@ public class Server {
 
 					int clientID = dataIn.readInt();
 					int seq = dataIn.readInt();
+                    String sourceAddr = dataIn.readUTF();
                     int payloadSize = dataIn.readInt();
                     byte pBuffer[] = new byte[payloadSize];
                     int readSize = dataIn.read(pBuffer);
-//                    System.out.println(readSize);
 
 					long packetIDLong = makeLongPacketID(clientID, seq);
 
@@ -196,8 +303,11 @@ public class Server {
 
                         Logger.d(Logger.byteArrayToHex(pBuffer));
 
-                        GameMessage gameMsg = GameMessage.readFromBytes(pBuffer);
-                        Logger.d("a: " + gameMsg.signal);
+                        GamePacket gamePacket = new GamePacket(clientID, sourceAddr, seq, pBuffer);
+                        Logger.d(sourceAddr);
+
+                        receivedPacketQueue.add(gamePacket);
+                        Logger.d("a: " + gamePacket.getGameMsg().signal);
 
 					} else {
 						// redundant packet
@@ -240,7 +350,10 @@ public class Server {
 
                         dataOut.writeInt(clientId);
                         dataOut.writeInt(myPacket.getSeq());
-                        Logger.d("Sending " + myPacket.getSeq());
+                        dataOut.writeUTF("server"); // TODO: Get server's real ip address and put in here.
+                        dataOut.writeInt(myPacket.payload.length);
+                        dataOut.write(myPacket.payload);
+                        Logger.d("Sending " + myPacket.getSeq() + " to " + myPacket.getDestination());
 
                         byte[] data = byteOut.toByteArray();
 
@@ -289,6 +402,7 @@ public class Server {
         long timestamp;
         int seq;
         String destination;
+        byte[] payload;
 
         public String getDestination() {
 			return destination;
@@ -298,14 +412,16 @@ public class Server {
 			this.destination = destination;
 		}
 
-		public MyPacket(long timestamp, int seq) {
+		public MyPacket(long timestamp, int seq, byte[] payload) {
             this.timestamp = timestamp;
             this.seq = seq;
+            this.payload = payload;
         }
 
-        public MyPacket(int seq) {
+        public MyPacket(int seq, byte[] payload) {
             this.timestamp = System.currentTimeMillis();
             this.seq = seq;
+            this.payload = payload;
         }
 
         public long getTimestamp() {
@@ -330,12 +446,33 @@ public class Server {
         }
     }
 
-    public void addMyPacket(String dest) {
+    public void sendGameMessage(int destId, GameMessage gameMsg) {
+        sendPacket(destId, gameMsg.toByteArray());
+    }
+
+    public void sendPacket(int destId, byte[] payload) {
+        if (playerMap.containsKey(destId)) {
+            lastSeq = lastSeq + 1;
+            MyPacket myPacket = new MyPacket(lastSeq, payload);
+            String destHostname =  playerMap.get(destId).getHostname();
+            myPacket.setDestination(destHostname);
+            packetQueue.add(myPacket);
+            Logger.d("Packet " + myPacket.toString() + " added");
+        } else {
+            Logger.d("Id " + destId + " is not registered");
+        }
+    }
+
+    public void addMyPacket(String destAddr) {
         lastSeq = lastSeq + 1;
-        MyPacket myPacket = new MyPacket(lastSeq);
-        myPacket.setDestination(dest);
-        
+        MyPacket myPacket = new MyPacket(lastSeq, new byte[]{});
+        myPacket.setDestination(destAddr);
         packetQueue.add(myPacket);
         Logger.d("Packet " + myPacket.toString() + " added");
+    }
+
+    private int generateId() {
+        lastGeneratedId = lastGeneratedId + 1;
+        return lastGeneratedId;
     }
 }

@@ -3,17 +3,20 @@ package com.nclab.swimgamemulti.network;
 public class UDPPacket {
 	long timestamp;
 	int seq;
+    String addr;
 	byte[] payload;
 
-	public UDPPacket(long timestamp, int seq, byte[] payload) {
+	public UDPPacket(long timestamp, int seq, String addr, byte[] payload) {
 		this.timestamp = timestamp;
 		this.seq = seq;
+        this.addr = addr;
 		this.payload = payload;
 	}
 
-	public UDPPacket(int seq, byte[] payload) {
+	public UDPPacket(int seq, String addr, byte[] payload) {
 		this.timestamp = System.currentTimeMillis();
 		this.seq = seq;
+        this.addr = addr;
 		this.payload = payload;
 	}
 
@@ -33,7 +36,15 @@ public class UDPPacket {
 		this.seq = seq;
 	}
 
-	public byte[] getPayload() {
+    public String getAddr() {
+        return addr;
+    }
+
+    public void setAddr(String addr) {
+        this.addr = addr;
+    }
+
+    public byte[] getPayload() {
 		return payload;
 	}
 

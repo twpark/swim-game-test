@@ -8,14 +8,25 @@ import java.io.*;
  * Time: 오후 1:14
  */
 public class GameMessage {
+    public int id;
     public long timestamp;
     public int signal;
     public int status;
+
+    public GameMessage() {}
+
+    public GameMessage(int id, long timestamp, int signal, int status) {
+        this.id = id;
+        this.timestamp = timestamp;
+        this.signal = signal;
+        this.status = status;
+    }
 
     public static GameMessage readFromBytes(byte[] bytes) {
         GameMessage msg = new GameMessage();
         try {
             DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
+            msg.id = dis.readInt();
             msg.timestamp = dis.readLong();
             msg.signal = dis.readInt();
             msg.status = dis.readInt();
@@ -29,6 +40,7 @@ public class GameMessage {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeInt(id);
             dos.writeLong(timestamp);
             dos.writeInt(signal);
             dos.writeInt(status);
@@ -39,3 +51,4 @@ public class GameMessage {
         return null;
     }
 }
+

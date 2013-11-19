@@ -16,8 +16,8 @@ public class Consts {
     public final static int MIN_PACKETSIZE = 128;
     public final static int RECV_TIMEOUT = 0;
 
-//    public final static String SERVER_HOSTNAME = "pomato.kaist.ac.kr";
-    public final static String SERVER_HOSTNAME = "192.168.0.8";
+    public final static String SERVER_HOSTNAME = "pomato.kaist.ac.kr";
+//    public final static String SERVER_HOSTNAME = "192.168.0.8";
     public final static int SERVER_PORT = 31342;
     public final static int SRC_PORT = 31343;
     public final static int CLIENT_PORT = 31344;
@@ -30,6 +30,7 @@ public class Consts {
     public static final int GAME_STATUS_NONE = 0;
     public static final int GAME_STATUS_WAIT = 1;
     public static final int GAME_STATUS_READY = 2;
+    public static final int GAME_STATUS_WAIT_ID = 15;
     public static final int GAME_STATUS_START = 3;
     public static final int GAME_STATUS_ATTACK = 4;
     public static final int GAME_STATUS_DEFENCE = 5;

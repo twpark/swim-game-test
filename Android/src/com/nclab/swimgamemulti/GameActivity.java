@@ -143,7 +143,7 @@ public class GameActivity extends Activity {
         startButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                gameHandler.obtainMessage(Game.MSG_GAME_READY).sendToTarget();
+                gameHandler.obtainMessage(Game.MSG_GAME_START_BUTTON).sendToTarget();
 //                if (!isGameStarted) {
 //                    gameHandler.obtainMessage(Game.MSG_GAME_START).sendToTarget();
 //                } else {

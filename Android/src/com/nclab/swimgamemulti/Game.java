@@ -3,8 +3,10 @@ package com.nclab.swimgamemulti;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import com.nclab.swimgamemulti.motion.SwimmingMotionDetector;
 import com.nclab.swimgamemulti.network.CommunicationManager;
+import com.nclab.swimgamemulti.network.GameMessage;
 import com.nclab.swimgamemulti.sound.GameSoundManager;
 import com.nclab.swimgamemulti.utils.Consts;
 import com.nclab.swimgamemulti.utils.FileLogger;
@@ -29,7 +31,7 @@ public class Game implements Runnable {
     public static final int MSG_TIME_SYNC = 3;
     public static final int MSG_GAME_START = 4;
     public static final int MSG_GAME_STOP = 5;
-    public static final int MSG_GAME_READY = 6;
+    public static final int MSG_GAME_START_BUTTON = 6;
     public static final int MSG_GAME_UNREADY = 7;
     public static final int MSG_NET_TEST_START = 8;
     public static final int MSG_NET_TEST_STOP = 9;
@@ -53,6 +55,7 @@ public class Game implements Runnable {
     private static final int GAME_STATUS_NONE = Consts.GAME_STATUS_NONE;
     private static final int GAME_STATUS_WAIT = Consts.GAME_STATUS_WAIT;
     private static final int GAME_STATUS_READY = Consts.GAME_STATUS_READY;
+    private static final int GAME_STATUS_WAIT_ID = Consts.GAME_STATUS_WAIT_ID;
     private static final int GAME_STATUS_START = Consts.GAME_STATUS_START;
     private static final int GAME_STATUS_ATTACK = Consts.GAME_STATUS_ATTACK;
     private static final int GAME_STATUS_DEFENCE = Consts.GAME_STATUS_DEFENCE;
@@ -61,7 +64,10 @@ public class Game implements Runnable {
     private static final int GAME_STATUS_VICTORY = Consts.GAME_STATUS_VICTORY;
     private static final int GAME_STATUS_GAME_OVER = Consts.GAME_STATUS_GAME_OVER;
 
-    private static final int SIGNAL_READY = 0;
+    private static final int SIGNAL_READY = 100;
+    private static final int SIGNAL_DESIGNATE_ID = 101;
+    private static final int SIGNAL_START_REQUEST = 102;
+    private static final int SIGNAL_START_ACK = 103;
 
     private static final int COMMAND_GAMESTART = 0;
     private static final int COMMAND_CHANGE_TO_ATTACK = 1;
@@ -97,6 +103,7 @@ public class Game implements Runnable {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_SET_ID:
+
                     myID = (Integer)msg.obj;
                     if(uiHandler != null){
                         uiHandler.obtainMessage(GameActivity.MSG_ID_SET, myID).sendToTarget();
@@ -120,8 +127,13 @@ public class Game implements Runnable {
                     isGameStarted = false;
                     stopGame();
                     break;
-                case MSG_GAME_READY:
-                    mCommunicationManager.obtainMessage(CommunicationManager.MSG_OUTGOING, SIGNAL_READY, 0).sendToTarget();
+                case MSG_GAME_START_BUTTON:
+                    if (gameStatus == GAME_STATUS_WAIT) {
+                        mCommunicationManager.obtainMessage(CommunicationManager.MSG_OUTGOING, SIGNAL_READY, 0).sendToTarget();
+                        gameStatus = GAME_STATUS_WAIT_ID;
+                    } else if (gameStatus == GAME_STATUS_READY) {
+                        mCommunicationManager.obtainMessage(CommunicationManager.MSG_OUTGOING, SIGNAL_START_REQUEST, 0).sendToTarget();
+                    }
                     break;
                 case MSG_GAME_UNREADY:
                     break;
@@ -147,6 +159,17 @@ public class Game implements Runnable {
                     break;
                 case MSG_ALL_READY:
                     // Enable start button if this is host device
+                    break;
+                case SIGNAL_DESIGNATE_ID:
+                    GameMessage gameMsg = (GameMessage) msg.obj;
+                    myID = gameMsg.id;
+                    gameStatus = GAME_STATUS_READY;
+                    uiHandler.obtainMessage(MSG_SET_ID, Integer.toString(myID)).sendToTarget();
+                    break;
+                case SIGNAL_START_ACK:
+                    gameStatus = GAME_STATUS_START;
+                    uiHandler.obtainMessage(GameActivity.MSG_DEBUG_VIEW_ADD, "Started");
+                    break;
             }
         }
     };
@@ -158,6 +181,10 @@ public class Game implements Runnable {
 
 
     public Game(Context ctx){
+        StrictMode.ThreadPolicy policy =
+                new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         context = ctx;
         mCommunicationManager = new CommunicationManager(gameHandler);
         mLogger = new FileLogger();
@@ -178,6 +205,7 @@ public class Game implements Runnable {
         long curTime = 0, prevTime = 0;
         long targetInterval = 1000 / FRAME_RATE;
 
+        gameStatus = GAME_STATUS_WAIT;
 
         while(running){
             prevTime = curTime;
@@ -197,7 +225,7 @@ public class Game implements Runnable {
 
     public void startGame() {
         mGameSoundManager.playBGM("BGM_WAIT");
-        currentGameStatus = GAME_STATUS_WAIT;
+        gameStatus = GAME_STATUS_WAIT;
 
         for(int i=0; i<4; ++i){
             if(i != myID){
@@ -211,7 +239,7 @@ public class Game implements Runnable {
 
     public void stopGame() {
         mGameSoundManager.stopBGM();
-        currentGameStatus = GAME_STATUS_NONE;
+        gameStatus = GAME_STATUS_NONE;
         isGameStart = false;
     }
 
@@ -225,7 +253,7 @@ public class Game implements Runnable {
 
 
     long last_test_time = 0;
-    int currentGameStatus = GAME_STATUS_NONE;
+    int gameStatus = GAME_STATUS_NONE;
     int previous_game_status = GAME_STATUS_NONE;
     long last_packet_send_time;
     private void update(long time){
@@ -237,7 +265,7 @@ public class Game implements Runnable {
 
         //sensor update
         mSwimmingMotionDetector.update(time);
-        if(isStrokeTestStarted || isGameStarted && (currentGameStatus != GAME_STATUS_START)){
+        if(isStrokeTestStarted || isGameStarted && (gameStatus != GAME_STATUS_START)){
             switch(mSwimmingMotionDetector.getStroke()){
                 case SwimmingMotionDetector.FREESTYLE_LEFT_STROKE:
                 case SwimmingMotionDetector.FREESTYLE_RIGHT_STROKE:
@@ -391,28 +419,28 @@ public class Game implements Runnable {
 
     private synchronized void UpdateGame1P(long time){
 
-        if(currentGameStatus == GAME_STATUS_ATTACK ||
-                currentGameStatus == GAME_STATUS_DEFENCE ||
-                currentGameStatus == GAME_STATUS_REST){
+        if(gameStatus == GAME_STATUS_ATTACK ||
+                gameStatus == GAME_STATUS_DEFENCE ||
+                gameStatus == GAME_STATUS_REST){
             if(time - current_phase_start_time > phaseList.getFirst().duration){
                 phaseList.removeFirst();
-                previous_game_status = currentGameStatus;
+                previous_game_status = gameStatus;
                 if(phaseList.isEmpty()){
-                    currentGameStatus = GAME_STATUS_GAME_OVER;
+                    gameStatus = GAME_STATUS_GAME_OVER;
                     mGameSoundManager.playBGM("NARRATION_GAMEOVER");
                 }
 
-                currentGameStatus = phaseList.getFirst().type;
-                if(currentGameStatus == GAME_STATUS_ATTACK){
+                gameStatus = phaseList.getFirst().type;
+                if(gameStatus == GAME_STATUS_ATTACK){
                     mGameSoundManager.playBGM("BGM_ATTACK");
                     isPlayedAttackNarrationFromDefence1 = false;
                     isPlayedAttackNarrationFromDefence2 = false;
                     isPlayedAttackNarrationFromRest = false;
-                }else if(currentGameStatus == GAME_STATUS_DEFENCE){
+                }else if(gameStatus == GAME_STATUS_DEFENCE){
                     initDefenceStage(time);
                     mGameSoundManager.playBGM("BGM_DEFENCE");
                     isPlayedDefenceNarration = false;
-                }else if(currentGameStatus == GAME_STATUS_REST){
+                }else if(gameStatus == GAME_STATUS_REST){
                     mGameSoundManager.playBGM("BGM_REST");
                     isPlayedRestNarration = false;
                 }
@@ -420,11 +448,11 @@ public class Game implements Runnable {
             }
         }
 
-        switch(currentGameStatus){
+        switch(gameStatus){
             case GAME_STATUS_WAIT:{
                 //nothing
                 if(mSwimmingMotionDetector.getStatus() == SwimmingMotionDetector.STATUS_PRONE){
-                    currentGameStatus = GAME_STATUS_START;
+                    gameStatus = GAME_STATUS_START;
                     current_phase_start_time = time;
                     InitStageForGame(time);
                     mGameSoundManager.playBGM("BGM_START");
@@ -463,16 +491,16 @@ public class Game implements Runnable {
                 }
 
                 if(time - current_phase_start_time > 14000){
-                    currentGameStatus = phaseList.getFirst().type;
-                    if(currentGameStatus == GAME_STATUS_ATTACK){
+                    gameStatus = phaseList.getFirst().type;
+                    if(gameStatus == GAME_STATUS_ATTACK){
                         mGameSoundManager.playBGM("BGM_ATTACK");
                         isPlayedAttackNarrationFromDefence1 = false;
                         isPlayedAttackNarrationFromDefence2 = false;
                         isPlayedAttackNarrationFromRest = false;
-                    }else if(currentGameStatus == GAME_STATUS_DEFENCE){
+                    }else if(gameStatus == GAME_STATUS_DEFENCE){
                         mGameSoundManager.playBGM("BGM_DEFENCE");
                         isPlayedDefenceNarration = false;
-                    }else if(currentGameStatus == GAME_STATUS_REST){
+                    }else if(gameStatus == GAME_STATUS_REST){
                         mGameSoundManager.playBGM("BGM_REST");
                         isPlayedRestNarration = false;
                     }
@@ -525,7 +553,7 @@ public class Game implements Runnable {
                 }
 
                 if(Dragon_HP < 0){
-                    currentGameStatus = GAME_STATUS_VICTORY;
+                    gameStatus = GAME_STATUS_VICTORY;
                     mGameSoundManager.playBGM("BGM_VICTORY");
                 }
 
@@ -699,7 +727,7 @@ public class Game implements Runnable {
             defence_judged = true;
             My_HP -= 1;
             if(My_HP < 0){
-                currentGameStatus = GAME_STATUS_GAME_OVER;
+                gameStatus = GAME_STATUS_GAME_OVER;
                 mGameSoundManager.playBGM("NARRATION_GAMEOVER");
                 mGameSoundManager.playBGM("BGM_GAMEOVER");
             }
@@ -771,28 +799,28 @@ public class Game implements Runnable {
 //			int command = buffer[6];
 //			switch(command){
 //			case COMMAND_GAMESTART:{
-//				currentGameStatus = GAME_STATUS_START;
+//				gameStatus = GAME_STATUS_START;
 //				mGameSoundManager.playBGM("BGM_START");
 //				break;
 //			}
 //			case COMMAND_CHANGE_TO_ATTACK:{
-//				currentGameStatus = GAME_STATUS_ATTACK;
+//				gameStatus = GAME_STATUS_ATTACK;
 //				mGameSoundManager.playBGM("BGM_ATTACK");
 //				break;
 //			}
 //			case COMMAND_CHANGE_TO_DEFFENCE:{
-//				currentGameStatus = GAME_STATUS_DEFENCE;
+//				gameStatus = GAME_STATUS_DEFENCE;
 //				mGameSoundManager.playBGM("BGM_DEFENCE");
 //				isDefenceStarted = false;
 //				break;
 //			}
 //			case COMMAND_VICTORY:{
-//				currentGameStatus = GAME_STATUS_VICTORY;
+//				gameStatus = GAME_STATUS_VICTORY;
 //				mGameSoundManager.playBGM("BGM_VICTORY");
 //				break;
 //			}
 //			case COMMAND_GAMEOVER:{
-//				currentGameStatus = GAME_STATUS_GAME_OVER;
+//				gameStatus = GAME_STATUS_GAME_OVER;
 //				mGameSoundManager.playBGM("BGM_GAMEOVER");
 //				break;
 //			}

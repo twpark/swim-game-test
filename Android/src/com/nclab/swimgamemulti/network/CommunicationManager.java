@@ -28,13 +28,14 @@ public class CommunicationManager extends Handler {
                     Bundle bundle = msg.getData();
                     byte[] payload = bundle.getByteArray("payload");
                     gameMsg = GameMessage.readFromBytes(payload);
-                    gameHandler.obtainMessage(gameMsg.signal).sendToTarget();
+                    gameHandler.obtainMessage(gameMsg.signal, gameMsg).sendToTarget();
                     break;
                 case MSG_OUTGOING:
                     // Build GameMessage
                     gameMsg = new GameMessage();
-                    gameMsg.timestamp = 0;
-                    gameMsg.signal = -1;
+                    gameMsg.id = 0;
+                    gameMsg.timestamp = System.currentTimeMillis();
+                    gameMsg.signal = msg.arg1;
                     gameMsg.status = 100;
 
                     networkManager.sendPacket(gameMsg.toByteArray());

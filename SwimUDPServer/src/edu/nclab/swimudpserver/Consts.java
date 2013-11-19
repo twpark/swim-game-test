@@ -2,6 +2,9 @@ package edu.nclab.swimudpserver;
 
 
 public class Consts {
+    public final static int DEFAULT_PLAYER_HP = 10;
+    public final static int DEFAULT_DRAGON_HP = 200;
+
     public final static int MIN_PACKETSIZE = 128;
     public final static int DEST_PORT = 31344;
     public final static int SRC_PORT = 31343;
@@ -19,9 +22,10 @@ public class Consts {
     public static final int GAME_STATUS_START = 3;
     public static final int GAME_STATUS_ATTACK = 4;
     public static final int GAME_STATUS_DEFENCE = 5;
-    public static final int GAME_STATUS_REST = 6;
-    public static final int GAME_STATUS_VICTORY = 7;
-    public static final int GAME_STATUS_GAME_OVER = 8;
+    public static final int GAME_STATUS_KNOCKDOWN = 7;
+    public static final int GAME_STATUS_REST = 8;
+    public static final int GAME_STATUS_VICTORY = 9;
+    public static final int GAME_STATUS_GAME_OVER = 10;
 
     public static final int SERVER_STATUS_WAIT = 1;
     public static final int SERVER_STATUS_READYING = 2;
