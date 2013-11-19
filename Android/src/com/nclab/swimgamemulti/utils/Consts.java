@@ -7,6 +7,7 @@ package com.nclab.swimgamemulti.utils;
  */
 public class Consts {
     public final static boolean LOGGING_ENABLED = true;
+    public final static boolean FILE_LOGGING_ENABLED = true;
 
     /**
      * Network constants
