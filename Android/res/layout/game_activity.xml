@@ -52,8 +52,8 @@
                 android:id="@+id/textViewError"
                 android:layout_width="wrap_content"
                 android:layout_height="113dp"
-                android:layout_above="@+id/startButton"
-                android:layout_alignLeft="@+id/startButton"
+                android:layout_above="@+id/readyButton"
+                android:layout_alignLeft="@+id/readyButton"
                 android:layout_alignRight="@+id/textViewPacket" android:layout_alignParentTop="true"
                 />
     </LinearLayout>
@@ -63,13 +63,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal" android:layout_alignParentBottom="true">
         <Button
-                android:id="@+id/startButton"
+                android:id="@+id/readyButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBaseline="@+id/testStartButton"
                 android:layout_alignBottom="@+id/testStartButton"
                 android:layout_alignLeft="@+id/linearLayout1"
-                android:text="Start"/>
+                android:text="Ready"/>
 
         <Button android:id="@+id/netTestButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_alignBaseline="@+id/testStartButton" android:layout_alignBottom="@+id/testStartButton"
@@ -92,7 +92,7 @@
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@+id/startButton"
+                android:layout_alignBottom="@+id/readyButton"
                 android:layout_toLeftOf="@+id/testStartButton"
                 android:text="Test2"/>
 

@@ -25,7 +25,7 @@ public class GameActivity extends Activity {
                     .getService();
             gameService.setUIHandler(uiHandler);
             gameHandler = gameService.getGameHandler();
-            gameHandler.obtainMessage(Game.UIMSG_REQUEST_TEST_STATUS).sendToTarget();
+            gameHandler.obtainMessage(Game.MSG_REQUEST_TEST_STATUS).sendToTarget();
             Toast.makeText(GameActivity.this, "Service Connected", Toast.LENGTH_SHORT).show();
         }
 
@@ -88,7 +88,7 @@ public class GameActivity extends Activity {
                 // TODO Auto-generated method stub
                 if (gameHandler != null) {
                     int id = Integer.parseInt(idSpinner.getSelectedItem().toString());
-                    gameHandler.obtainMessage(Game.UIMSG_SET_ID, id).sendToTarget();
+                    gameHandler.obtainMessage(Game.MSG_SET_ID, id).sendToTarget();
                     Toast.makeText(GameActivity.this, "set id to" + id, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(GameActivity.this, "no handler connected", Toast.LENGTH_SHORT).show();
@@ -139,15 +139,16 @@ public class GameActivity extends Activity {
 //        int f_pos = sharedPref.getInt("frequency", 0);
 //        spinnerF.setSelection(f_pos);
 
-        startButton = (Button) findViewById(R.id.startButton);
+        startButton = (Button) findViewById(R.id.readyButton);
         startButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!isGameStarted) {
-                    gameHandler.obtainMessage(Game.UIMSG_GAME1P_START).sendToTarget();
-                } else {
-                    gameHandler.obtainMessage(Game.UIMSG_GAME1P_STOP).sendToTarget();
-                }
+                gameHandler.obtainMessage(Game.MSG_GAME_READY).sendToTarget();
+//                if (!isGameStarted) {
+//                    gameHandler.obtainMessage(Game.MSG_GAME_START).sendToTarget();
+//                } else {
+//                    gameHandler.obtainMessage(Game.MSG_GAME_STOP).sendToTarget();
+//                }
             }
         });
 
@@ -162,9 +163,9 @@ public class GameActivity extends Activity {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 if (!isNetTestStarted) {
-                    gameHandler.obtainMessage(Game.UIMSG_NET_TEST_START).sendToTarget();
+                    gameHandler.obtainMessage(Game.MSG_NET_TEST_START).sendToTarget();
                 } else {
-                    gameHandler.obtainMessage(Game.UIMSG_NET_TEST_STOP).sendToTarget();
+                    gameHandler.obtainMessage(Game.MSG_NET_TEST_STOP).sendToTarget();
                 }
                 isNetTestStarted = !isNetTestStarted;
                 netTestButton.setText(isNetTestStarted ? "Net Stop" : "Net Start");
@@ -178,9 +179,9 @@ public class GameActivity extends Activity {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 if (!isStrokeTestStarted) {
-                    gameHandler.obtainMessage(Game.UIMSG_STROKE_TEST_START).sendToTarget();
+                    gameHandler.obtainMessage(Game.MSG_STROKE_TEST_START).sendToTarget();
                 } else {
-                    gameHandler.obtainMessage(Game.UIMSG_STROKE_TEST_STOP).sendToTarget();
+                    gameHandler.obtainMessage(Game.MSG_STROKE_TEST_STOP).sendToTarget();
                 }
                 isStrokeTestStarted = !isStrokeTestStarted;
                 strokeTestButton.setText(isStrokeTestStarted ? "Stroke Stop" : "Stroke Start");

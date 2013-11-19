@@ -16,6 +16,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
 public class Server {
+
+    public static final int SERVER_STATUS_WAIT = 1;
+    public static final int SERVER_STATUS_READYING = 2;
+    public static final int SERVER_STATUS_ALL_READY = 3;
+    public static final int SERVER_STATUS_STARTED = 4;
+
+    boolean isServerRunning = true;
 	boolean isReceiving = true;
 	boolean isSending = true;
 	CountDownLatch latch;
@@ -26,13 +33,29 @@ public class Server {
     private int lastSeq = 1;
     private ConcurrentLinkedQueue<MyPacket> packetQueue = new ConcurrentLinkedQueue<MyPacket>();
 
+    private int serverStatus = Consts.SERVER_STATUS_WAIT;
+
 	public static void main(String[] args) {
 		Server server = new Server();
 
+        Logger.d("Server started");
 		server.udpReceiverWorker.start();
 		server.udpSenderWorker.start();
 
+        GameMessage gMsg = new GameMessage();
+        gMsg.timestamp = 0;
+        gMsg.signal = -1;
+        gMsg.status = 100;
+        try {
+            byte[] a = gMsg.toByteArray();
+            Logger.d(Logger.byteArrayToHex(a));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
 		try {
+            server.run();
 			/* for debugging 
 			Thread.sleep(1000);
 			server.addMyPacket("143.248.92.63");
@@ -65,6 +88,27 @@ public class Server {
 		packetTimeList = new LinkedList<PacketID>();
 	}
 
+    public void run() throws Exception {
+        Logger.d("Waiting for players to be ready");
+        long curTime = 0, prevTime = 0;
+        long frameInterval = 1000 / Consts.FRAME_RATE;
+
+        while (isServerRunning) {
+            prevTime = curTime;
+            curTime = System.currentTimeMillis();
+
+            update();
+
+            long remaining = frameInterval - (curTime - prevTime);
+            if(remaining > 0)
+                Thread.sleep(remaining);
+        }
+    }
+
+    private void update() {
+
+    }
+
 	private class PacketID {
 		public int clientID;
 		public int sequence;
@@ -81,7 +125,7 @@ public class Server {
 		}
 	}
 
-	// make a long packet ID to use as a key of packetIDSet
+    // make a long packet ID to use as a key of packetIDSet
 	private long makeLongPacketID(int id, int seq) {
 		long longID = id;
 
@@ -134,17 +178,27 @@ public class Server {
 					DataInputStream dataIn = new DataInputStream(byteIn);
 
 					int clientID = dataIn.readByte();
-					int sequence = dataIn.readInt();
+					int seq = dataIn.readInt();
+                    int payloadSize = dataIn.readInt();
+                    byte pBuffer[] = new byte[payloadSize];
+                    int readSize = dataIn.read(pBuffer);
+//                    System.out.println(readSize);
 
-					long packetIDLong = makeLongPacketID(clientID, sequence);
+					long packetIDLong = makeLongPacketID(clientID, seq);
 
 					// check if the packet is already in the set
 					if (false == packetSet.contains(packetIDLong)) {
 						// new packet
-						Logger.d("Received: " + sequence + " from client "
+						Logger.d("Received: " + seq + " from client "
 								+ clientID);
 						packetSet.add(packetIDLong);
-						packetTimeList.add(new PacketID(clientID, sequence));
+						packetTimeList.add(new PacketID(clientID, seq));
+
+                        Logger.d(Logger.byteArrayToHex(pBuffer));
+
+                        GameMessage gameMsg = GameMessage.readFromBytes(pBuffer);
+                        Logger.d("a: " + gameMsg.signal);
+
 					} else {
 						// redundant packet
 						// Logger.d("Received a redundant packet: " + sequence

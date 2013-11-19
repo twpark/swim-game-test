@@ -41,7 +41,7 @@ public class NetworkManager {
         public void run() {
             Logger.d("Receiver running...");
             try {
-                DatagramSocket socket = openSocket(Consts.RECV_PORT);
+                DatagramSocket socket = openSocket(Consts.CLIENT_PORT);
                 while (isReceiving) {
                     byte buffer[] = new byte[256];
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -64,7 +64,7 @@ public class NetworkManager {
 //                        receivedPacketQueue.add(udpPacket);
                         Bundle bundle = new Bundle();
                         bundle.putByteArray("payload", udpPacket.getPayload());
-                        Message message = receiveHandler.obtainMessage(1);
+                        Message message = receiveHandler.obtainMessage(CommunicationManager.MSG_INGOING);
                         message.setData(bundle);
                         message.sendToTarget();
                         Logger.d("Received " + seq + " from " + serverId);
@@ -85,7 +85,7 @@ public class NetworkManager {
             byte clientId = 1;
             try {
                 DatagramSocket socket = openSocket(Consts.SRC_PORT);
-                InetAddress addr = InetAddress.getByName(Consts.DEST_HOSTNAME);
+                InetAddress addr = InetAddress.getByName(Consts.SERVER_HOSTNAME);
 
                 while (isSending) {
                     long startTime = System.currentTimeMillis();
@@ -102,11 +102,12 @@ public class NetworkManager {
                         dataOut.write(clientId);
                         dataOut.writeInt(udpPacket.getSeq());
                         dataOut.writeInt(udpPacket.getPayload().length);
+                        Logger.d("Payload size: " + udpPacket.getPayload().length);
                         dataOut.write(udpPacket.getPayload());
-                        Logger.d("Sending " + udpPacket.getSeq());
+                        Logger.d("Sending " + Logger.byteArrayToHex(udpPacket.getPayload()));
 
                         byte[] data = byteOut.toByteArray();
-                        DatagramPacket packet = new DatagramPacket(data, data.length, addr, Consts.DEST_PORT);
+                        DatagramPacket packet = new DatagramPacket(data, data.length, addr, Consts.SERVER_PORT);
                         socket.send(packet);
 
                         packetQueue.add(udpPacket);
