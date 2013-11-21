@@ -1,0 +1,209 @@
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".GameActivity">
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" android:layout_below="@+id/linearLayout1">
+        <Button android:id="@+id/netTestButton" android:layout_width="300dp" android:layout_height="150dp"
+                android:layout_alignBaseline="@+id/testStartButton" android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1" android:text="Net test" android:textSize="50dp"
+                android:layout_gravity="center"/>
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <Button
+                    android:id="@+id/prefixButton"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:text="Set"/>
+
+            <EditText
+                    android:id="@+id/prefixText"
+                    android:text="Style"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/prefixButton"
+                    android:layout_toRightOf="@+id/prefixLabel"/>
+
+            <TextView
+                    android:id="@+id/prefixLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/prefixButton"
+                    android:layout_alignBottom="@+id/prefixButton"
+                    android:layout_alignParentLeft="true"
+                    android:text="Description"/>
+        </RelativeLayout>
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <Button
+                    android:id="@+id/ppsButton"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:text="Set"/>
+
+            <EditText
+                    android:id="@+id/ppsText"
+                    android:text="10"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/ppsButton"
+                    android:layout_toRightOf="@+id/ppsLabel"/>
+
+            <TextView
+                    android:id="@+id/ppsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/ppsButton"
+                    android:layout_alignBottom="@+id/ppsButton"
+                    android:layout_alignParentLeft="true"
+                    android:text="Packets per second"/>
+        </RelativeLayout>
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/durationSetButton"
+                    android:layout_toRightOf="@+id/durationLabel"
+                    android:text="20"
+                    android:id="@+id/durationText"/>
+            <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:text="Set"
+                    android:id="@+id/durationSetButton"/>
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/durationSetButton"
+                    android:layout_alignBottom="@+id/durationSetButton"
+                    android:layout_alignParentLeft="true"
+                    android:text="Duration"
+                    android:id="@+id/durationLabel" android:singleLine="false"/>
+        </RelativeLayout>
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/serverAddressSetButton"
+                    android:layout_toRightOf="@+id/serverLabel"
+                    android:text="address"
+                    android:id="@+id/serverAddressText"/>
+            <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:text="Set"
+                    android:id="@+id/serverAddressSetButton"/>
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/serverAddressSetButton"
+                    android:layout_alignBottom="@+id/serverAddressSetButton"
+                    android:layout_alignParentLeft="true"
+                    android:text="Server"
+                    android:id="@+id/serverLabel" android:singleLine="false"/>
+        </RelativeLayout>
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <Button
+                    android:id="@+id/idButton"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:text="Button"/>
+
+            <Spinner
+                    android:id="@+id/idSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/idButton"
+                    android:layout_toRightOf="@+id/idLabel"/>
+
+            <TextView
+                    android:id="@+id/idLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/idButton"
+                    android:layout_alignBottom="@+id/idButton"
+                    android:layout_alignParentLeft="true"
+                    android:text="TextView"/>
+        </RelativeLayout>
+        <TextView
+                android:id="@+id/textViewPacket"
+                android:layout_width="wrap_content"
+                android:layout_height="15dp"
+                android:layout_alignLeft="@+id/linearLayout1"
+                android:layout_alignRight="@+id/linearLayout1"
+                android:layout_below="@+id/linearLayout1"/>
+        <TextView
+                android:id="@+id/textViewError"
+                android:layout_width="wrap_content"
+                android:layout_height="15dp"
+                android:layout_above="@+id/readyButton"
+                android:layout_alignLeft="@+id/readyButton"
+                android:layout_alignRight="@+id/textViewPacket" android:layout_alignParentTop="true"
+                />
+    </LinearLayout>
+    <LinearLayout
+            android:id="@+id/linearLayout1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_alignParentBottom="true">
+        <Button
+                android:id="@+id/readyButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/testStartButton"
+                android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1"
+                android:text="Ready"/>
+
+        <Button android:id="@+id/netTimeSyncButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/testStartButton" android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1" android:text="NTP"/>
+
+        <Button android:id="@+id/quitButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/testStartButton" android:layout_alignBottom="@+id/testStartButton"
+                android:layout_alignLeft="@+id/linearLayout1" android:text="Quit"/>
+
+
+    </LinearLayout>
+
+</LinearLayout>
