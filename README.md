@@ -1,2 +1,2 @@
-swim-game-test
+my-game-project-test
 ==============
